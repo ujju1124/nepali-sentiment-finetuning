@@ -1,262 +1,113 @@
-# 🇳🇵 Nepali Sentiment Analysis Fine-Tuning
+# Nepali Sentiment Analysis: Fine-Tuning XLM-RoBERTa
 
-A production-ready portfolio project demonstrating measurable improvement in sentiment analysis through fine-tuning XLM-RoBERTa on Nepali text.
+Fine-tuned XLM-RoBERTa on Nepali sentiment analysis, achieving 88.5% accuracy (38 percentage point improvement over zero-shot baseline) using manual training loop with gradient accumulation and warmup scheduling.
 
-## 📊 Quick Results
+## Results
 
 | Metric | Baseline (Zero-Shot) | Fine-Tuned | Improvement |
 |--------|---------------------|------------|-------------|
-| Accuracy | Run to see | Run to see | Run to see |
-| F1 Score | Run to see | Run to see | Run to see |
+| **Accuracy** | 50.50% | **88.50%** | **+38.0%** |
+| **F1 Score** | 0.00 | **0.88** | **+0.88** |
+| **Error Rate** | 49.50% | 11.50% | -38.0% |
 
-> **Note**: Numbers above will be populated after running the notebook in Google Colab
+**Training:** 2 epochs, loss decreased from 0.5113 → 0.3324  
+**Evaluation:** 200 random test samples, confusion matrix [[90, 11], [12, 87]]  
+**Dataset:** 65,106 train / 16,279 test examples from IRIIS-RESEARCH/Sentiment-Analysis-Nepali
 
----
+## Why This Project
 
-## 🎯 Project Highlights
+Nepali NLP is underserved despite 16M+ native speakers. This project demonstrates:
 
-This notebook demonstrates:
+1. **Manual training loop implementation** — shows understanding of forward/backward passes, gradient accumulation, and optimization mechanics rather than just calling `.train()`
+2. **Principled debugging** — baseline model predicted all negatives (F1=0.00), fixed through proper loss function and warmup scheduling
+3. **Honest evaluation** — includes error analysis showing failure modes (ambiguous short texts, mixed sentiment in long passages)
 
-✅ **Before/After Comparison**: Clear baseline → fine-tuned metrics  
-✅ **Manual Training Loop**: Shows understanding of training mechanics (not just `.train()`)  
-✅ **Class Imbalance Handling**: Weighted loss function for imbalanced datasets  
-✅ **Honest Error Analysis**: What improved AND what still fails  
-✅ **Production-Ready Code**: Reusable inference function  
-✅ **Interview-Ready Comments**: Every section explains "why", not just "what"
+## How to Run
 
----
+**Requirements:** Google Colab with T4 GPU (free tier works)
 
-## 📁 Project Structure
+1. Upload `nepali_sentiment_finetuning (2).ipynb` to [Google Colab](https://colab.research.google.com/)
+2. Runtime → Change runtime type → GPU (T4)
+3. Runtime → Run all
+4. Wait ~50 minutes for 2 epochs of training
 
-```
-nepali-sentiment-finetuning/
-│
-├── nepali_sentiment_finetuning.ipynb  # Main notebook (ready for Colab)
-├── README.md                           # This file
-├── create_complete_notebook.py        # Generator script (optional)
-└── generate_notebook.py               # Alternative generator (optional)
-```
-
----
-
-## 🚀 How to Use
-
-### Option 1: Google Colab (Recommended)
-
-1. **Upload the notebook** to [Google Colab](https://colab.research.google.com/)
-2. **Enable GPU**: Runtime → Change runtime type → Hardware accelerator: GPU (T4)
-3. **Run all cells**: Runtime → Run all
-4. **Wait ~15-20 minutes** for complete execution (3 epochs of fine-tuning)
-
-### Option 2: Local Jupyter
-
+**Local Setup:**
 ```bash
-# Install dependencies
 pip install transformers datasets torch scikit-learn seaborn matplotlib accelerate
-
-# Launch Jupyter
 jupyter notebook nepali_sentiment_finetuning.ipynb
 ```
+Requires CUDA GPU with 8GB+ VRAM.
 
-**Requirements**: CUDA-capable GPU with 8GB+ VRAM (T4, V100, etc.)
+## Notebook Structure
 
----
+1. **Setup & Data**: Load dataset, analyze 49/51 class balance, check for nulls/duplicates
+2. **Baseline Evaluation**: Zero-shot XLM-RoBERTa (predicts all negative, 50.5% accuracy)
+3. **Fine-Tuning**: Manual training loop with gradient accumulation (4 steps) and warmup (10%)
+4. **Post Fine-Tuning Evaluation**: 88.5% accuracy on identical 200 test samples
+5. **Error Analysis**: 23 failures — short ambiguous texts and mixed-sentiment passages
+6. **Inference Function**: `predict_sentiment(text)` returns label + confidence (99%+ on clear examples)
 
-## 📝 Notebook Sections
+## Technical Decisions
 
-### Section 1: Setup & Data Exploration
-- Install packages
-- Load IRIIS-RESEARCH/Sentiment-Analysis-Nepali dataset
-- **Class distribution analysis** (critical for understanding bias)
-- Sample data inspection (see actual Nepali text)
-- Data quality checks (nulls, duplicates, text length)
+**XLM-RoBERTa:**  
+Multilingual transformer trained on 100+ languages including Nepali. Native Devanagari script support, proven cross-lingual performance.
 
-### Section 2: Baseline Evaluation (BEFORE)
-- Load pre-trained XLM-RoBERTa (zero-shot)
-- Run inference on 200 random test examples
-- Calculate accuracy, F1, confusion matrix
-- **Store baseline numbers for comparison**
+**Manual Training Loop:**  
+Explicit forward pass → loss calculation → backward pass → optimizer step. Shows understanding of training mechanics beyond high-level APIs.
 
-### Section 3: Fine-Tuning (Manual Loop)
-- Tokenize dataset
-- Calculate class weights for imbalanced data
-- **Manual training loop** (forward pass → loss → backward → optimize)
-- 3 epochs, batch_size=16, AdamW optimizer
-- Save fine-tuned model
+**No Class Weighting:**  
+Dataset is balanced (49.25% negative / 50.75% positive). Initial class weighting caused gradient interference. Removed after diagnosis.
 
-### Section 4: Evaluation (AFTER)
-- Run inference on **same 200 test examples**
-- Calculate fine-tuned metrics
-- **Side-by-side comparison**: Baseline vs Fine-Tuned
-- Visualize improvement
+**Warmup Scheduler:**  
+Linear warmup over 10% of training prevents early gradient collapse. Learning rate ramps from 0 → 2e-5 over first ~400 steps.
 
-### Section 5: Error Analysis
-- Find examples where fine-tuning **fixed** predictions
-- Find examples where model **still fails**
-- Honest discussion of limitations
-- Error pattern analysis (FP vs FN)
+**Gradient Accumulation:**  
+Accumulate over 4 steps → effective batch size 64 instead of 16. Stabilizes training on balanced dataset without memory overflow.
 
-### Section 6: Inference Function
-- Simple `predict_sentiment(text)` API
-- Returns: sentiment + confidence score
-- Test on example Nepali sentences
-- **Production-ready** for deployment
+**Gradient Clipping:**  
+Max norm 1.0 prevents exploding gradients during warmup phase.
 
----
+## Limitations
 
-## 🔑 Key Technical Decisions
+**Domain Specificity:**  
+Model trained on COVID-19 news headlines from 2020-2021. May not generalize well to other domains (social media, product reviews, literature).
 
-### Why XLM-RoBERTa?
-- **Multilingual**: Trained on 100+ languages including Nepali
-- **Devanagari Support**: Native handling of Nepali script
-- **Strong Baseline**: Proven performance on cross-lingual tasks
+**Failure Modes:**  
+- Short texts (< 10 words): lack context for disambiguation
+- Long texts (> 100 words): mixed sentiment signals hard to aggregate
+- Implicit sentiment: factual news statements where tone is implied not explicit
 
-### Why Manual Training Loop?
-Shows understanding of:
-- Forward pass computation
-- Loss calculation with class weights
-- Gradient backpropagation
-- Optimizer weight updates
+**Dataset Size:**  
+65K training examples sufficient for this domain but low-resource compared to English sentiment corpora (millions of examples).
 
-**Interview Impact**: Demonstrates you understand ML fundamentals, not just library APIs.
+**Evaluation:**  
+200 test samples used for comparison (computational efficiency). Full test set (16K examples) not evaluated.
 
-### Why 3 Epochs?
-- **Fast enough** for Colab T4 GPU (~15 minutes)
-- **Sufficient** to demonstrate improvement
-- **Avoids overfitting** on small dataset
+## Implementation Details
 
-### Why Class-Weighted Loss?
-Handles potential imbalance between positive/negative samples. Without weighting, model could bias toward majority class.
+**Hyperparameters:**
+- Learning rate: 2e-5 (AdamW)
+- Batch size: 16 (effective 64 with accumulation)
+- Epochs: 2
+- Max sequence length: 128 tokens
+- Warmup: 10% of total steps
+- Gradient clipping: 1.0
 
----
+**Infrastructure:**
+- Google Colab T4 GPU (15GB VRAM)
+- Training time: ~50 minutes
+- Model size: 278M parameters
+- Peak memory: ~5GB
 
-## 📈 Expected Performance
+## Files
 
-Based on similar multilingual sentiment tasks:
+- `nepali_sentiment_finetuning (2).ipynb` — Executed notebook with results
+- `README.md` — This file
+- `QUICK_START.md` — Step-by-step Colab setup
 
-- **Baseline (Zero-Shot)**: 50-60% accuracy (random guessing baseline)
-- **After Fine-Tuning**: 75-85% accuracy (dataset-dependent)
-- **Improvement**: +20-30 percentage points
+## Contact
 
-*Actual numbers depend on dataset quality and class balance.*
-
----
-
-## 🛠️ Troubleshooting
-
-### GPU Out of Memory (OOM)
-```python
-# Reduce batch sizes in training cell:
-train_dataloader = DataLoader(tokenized_train, batch_size=8, shuffle=True)  # Was 16
-```
-
-### Slow Training
-```python
-# Reduce epochs or use smaller dataset sample:
-NUM_EPOCHS = 2  # Instead of 3
-```
-
-### Dataset Load Error
-```bash
-# Verify HuggingFace datasets installation:
-pip install --upgrade datasets transformers
-```
-
----
-
-## 📚 Dataset Information
-
-**Source**: [IRIIS-RESEARCH/Sentiment-Analysis-Nepali](https://huggingface.co/datasets/IRIIS-RESEARCH/Sentiment-Analysis-Nepali)
-
-**Format**:
-- `text`: Nepali text string (Devanagari script)
-- `label`: 0 (negative) or 1 (positive)
-
-**Size**: Check Section 1 output after running notebook
-
----
-
-## 🎓 Learning Outcomes
-
-After completing this notebook, you'll understand:
-
-1. ✅ How to evaluate baseline performance before training
-2. ✅ Manual training loop implementation
-3. ✅ Handling class imbalance with weighted loss
-4. ✅ Proper train/test evaluation methodology
-5. ✅ Error analysis and model limitations
-6. ✅ Production-ready inference functions
-
----
-
-## 💼 Portfolio Use
-
-This notebook is designed for:
-- **GitHub repositories** (showcase ML skills)
-- **Resume projects** (tangible results with numbers)
-- **Interview discussions** (explains reasoning, not just code)
-- **Blog posts** (complete story with before/after)
-
-**Key Talking Points**:
-1. "I fine-tuned XLM-RoBERTa on Nepali sentiment data and improved accuracy by X%"
-2. "Used manual training loop instead of Trainer API to demonstrate understanding"
-3. "Implemented class-weighted loss to handle dataset imbalance"
-4. "Performed error analysis to understand model limitations"
-
----
-
-## 🔧 Customization
-
-Want to adapt this for other languages/tasks?
-
-```python
-# Change dataset:
-dataset = load_dataset("your-dataset-name")
-
-# Change model:
-MODEL_NAME = "bert-base-multilingual-cased"  # Or any HuggingFace model
-
-# Adjust hyperparameters:
-NUM_EPOCHS = 5
-BATCH_SIZE = 32
-LEARNING_RATE = 3e-5
-```
-
----
-
-## 📄 License
-
-This notebook is provided as-is for educational and portfolio purposes.
-
-**Dataset License**: Check [IRIIS-RESEARCH](https://huggingface.co/datasets/IRIIS-RESEARCH/Sentiment-Analysis-Nepali) dataset page  
-**Model License**: XLM-RoBERTa uses Apache 2.0 license
-
----
-
-## 🤝 Contributing
-
-Found a bug or want to improve this notebook?
-- Open an issue
-- Submit a pull request
-- Share your results!
-
----
-
-## 📞 Contact
-
-**Author**: [Your Name]  
-**Email**: [Your Email]  
-**LinkedIn**: [Your LinkedIn]  
-**Portfolio**: [Your Website]
-
----
-
-## 🙏 Acknowledgments
-
-- **IRIIS-RESEARCH** for the Nepali Sentiment dataset
-- **HuggingFace** for transformers library and XLM-RoBERTa model
-- **Google Colab** for free GPU access
-
----
-
-**⭐ If this helped you, please star the repository!**
+**Ujwal Dahal**  
+Email: dahalujwal3@gmail.com  
+Portfolio: [ujwaldahal.com.np](https://ujwaldahal.com.np)  
+GitHub: [@ujju1124](https://github.com/ujju1124)
