@@ -81,7 +81,7 @@ Model trained on COVID-19 news headlines from 2020-2021. May not generalize well
 65K training examples sufficient for this domain but low-resource compared to English sentiment corpora (millions of examples).
 
 **Evaluation:**  
-200 test samples used for comparison (computational efficiency). Full test set (16K examples) not evaluated.
+200 test samples used for comparison (computational efficiency). Full test set (16K examples) not evaluated. To evaluate on the full test set, replace `test_sample_df` with `test_df` in Section 4.
 
 ## Implementation Details
 
