@@ -26,7 +26,7 @@ Nepali NLP is underserved despite 16M+ native speakers. This project demonstrate
 
 **Requirements:** Google Colab with T4 GPU (free tier works)
 
-1. Upload `nepali_sentiment_finetuning (2).ipynb` to [Google Colab](https://colab.research.google.com/)
+1. Upload `nepali_sentiment_finetuning.ipynb` to [Google Colab](https://colab.research.google.com/)
 2. Runtime → Change runtime type → GPU (T4)
 3. Runtime → Run all
 4. Wait ~50 minutes for 2 epochs of training
@@ -101,9 +101,8 @@ Model trained on COVID-19 news headlines from 2020-2021. May not generalize well
 
 ## Files
 
-- `nepali_sentiment_finetuning (2).ipynb` — Executed notebook with results
+- `nepali_sentiment_finetuning.ipynb` — Executed notebook with results
 - `README.md` — This file
-- `QUICK_START.md` — Step-by-step Colab setup
 
 ## Contact
 
