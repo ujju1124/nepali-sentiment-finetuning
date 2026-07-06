@@ -14,29 +14,6 @@ Fine-tuned XLM-RoBERTa on Nepali sentiment analysis, achieving 88.5% accuracy (3
 **Evaluation:** 200 random test samples, confusion matrix [[90, 11], [12, 87]]  
 **Dataset:** 65,106 train / 16,279 test examples from IRIIS-RESEARCH/Sentiment-Analysis-Nepali
 
-## Why This Project
-
-Nepali NLP is underserved despite 16M+ native speakers. This project demonstrates:
-
-1. **Manual training loop implementation** — shows understanding of forward/backward passes, gradient accumulation, and optimization mechanics rather than just calling `.train()`
-2. **Principled debugging** — baseline model predicted all negatives (F1=0.00), fixed through proper loss function and warmup scheduling
-3. **Honest evaluation** — includes error analysis showing failure modes (ambiguous short texts, mixed sentiment in long passages)
-
-## How to Run
-
-**Requirements:** Google Colab with T4 GPU (free tier works)
-
-1. Upload `nepali_sentiment_finetuning.ipynb` to [Google Colab](https://colab.research.google.com/)
-2. Runtime → Change runtime type → GPU (T4)
-3. Runtime → Run all
-4. Wait ~50 minutes for 2 epochs of training
-
-**Local Setup:**
-```bash
-pip install transformers datasets torch scikit-learn seaborn matplotlib accelerate
-jupyter notebook nepali_sentiment_finetuning.ipynb
-```
-Requires CUDA GPU with 8GB+ VRAM.
 
 ## Notebook Structure
 
