@@ -30,3 +30,7 @@ generate_notebook.py
 create_complete_notebook.py
 verify_notebook.py
 check_formatting.py
+
+
+# Personal learning materials (local only)
+FINE_TUNING_EXPLAINED.md
